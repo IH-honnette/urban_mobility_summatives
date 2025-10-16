@@ -17,7 +17,6 @@ class UrbanMobilityDashboard {
   }
 
   setupEventListeners() {
-    // Sidebar navigation
     document.querySelectorAll('.menu-item').forEach(item => {
       item.addEventListener('click', (e) => {
         const section = e.currentTarget.dataset.section;
@@ -25,18 +24,15 @@ class UrbanMobilityDashboard {
       });
     });
 
-    // Sidebar toggle
     document.getElementById('sidebar-toggle').addEventListener('click', () => {
       document.querySelector('.sidebar').classList.toggle('collapsed');
       document.querySelector('.main-content').classList.toggle('expanded');
     });
 
-    // Refresh button
     document.getElementById('refresh-btn').addEventListener('click', () => {
       this.refreshData();
     });
 
-    // Filter controls
     document.getElementById('apply-filters').addEventListener('click', () => {
       this.currentPage = 1;
       this.loadTripsData();
@@ -46,18 +42,15 @@ class UrbanMobilityDashboard {
       this.resetFilters();
     });
 
-    // Pagination
     this.setupPaginationListeners();
   }
 
   switchSection(section) {
-    // Update active menu item
     document.querySelectorAll('.menu-item').forEach(item => {
       item.classList.remove('active');
     });
     document.querySelector(`[data-section="${section}"]`).classList.add('active');
 
-    // Update active content section
     document.querySelectorAll('.content-section').forEach(section => {
       section.classList.remove('active');
     });
@@ -65,7 +58,6 @@ class UrbanMobilityDashboard {
 
     this.currentSection = section;
 
-    // Load section-specific data
     this.loadSectionData(section);
   }
 
@@ -121,7 +113,7 @@ class UrbanMobilityDashboard {
       }
       const data = await response.json();
       
-      console.log('Stats data received:', data); // Debug log
+      console.log('Stats data received:', data);
       
       this.data.stats = data;
       this.updateOverviewMetrics(data);
@@ -142,7 +134,7 @@ class UrbanMobilityDashboard {
       }
       const data = await response.json();
       
-      console.log('Mobility insights data received:', data); // Debug log
+      console.log('Mobility insights data received:', data);
       
       this.data.mobility = data;
       this.renderSpeedHourlyChart(data.hourly_patterns);
@@ -183,14 +175,12 @@ class UrbanMobilityDashboard {
 
   async loadBusiestZones() {
     try {
-      // Load all zones with counts for the map
       const allZonesResponse = await fetch(`${this.apiBase}/all-zones-with-counts`);
       if (!allZonesResponse.ok) {
         throw new Error(`HTTP error! status: ${allZonesResponse.status}`);
       }
       const allZonesData = await allZonesResponse.json();
       
-      // Load busiest zones for the list
       const busiestZonesResponse = await fetch(`${this.apiBase}/busiest-zones`);
       if (!busiestZonesResponse.ok) {
         throw new Error(`HTTP error! status: ${busiestZonesResponse.status}`);

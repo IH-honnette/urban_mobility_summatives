@@ -39,7 +39,6 @@ urban-mobility-data-explorer/
 - **Interactive Dashboard**: Real-time data visualization
 - **Filtering**: Date range and fare amount filters
 - **Charts**: Hourly distribution and fare vs distance analysis
-- **Hotspots**: Top pickup zones with coordinates
 - **Responsive Design**: Modern dark theme with gradient accents
 
 ## Quick Start
@@ -69,14 +68,11 @@ python app.py
 cd frontend
 
 # Open index.html in your browser
-# Or serve with a local server:
-python -m http.server 8000
 ```
 
 ### 3. Access Application
 
-- Frontend: `http://localhost:8000`
-- Backend API: `http://localhost:5000`
+- Backend API: `http://localhost:5003`
 
 ## Database Schema
 
@@ -172,7 +168,7 @@ CREATE TABLE trips (
 - **psycopg2**: PostgreSQL adapter
 
 ### Frontend
-- **Vanilla JavaScript**: No frameworks for simplicity
+- **Vanilla JavaScript**
 - **Chart.js**: Data visualization
 - **CSS3**: Modern styling with gradients
 - **HTML5**: Semantic markup
@@ -238,29 +234,10 @@ CREATE TABLE trips (
 - Vendor performance comparison
 - Traffic flow optimization insights
 
-### 🕒 **Temporal Patterns**
-- Peak hours identification
-- Weekly usage patterns
-- Hourly distribution analysis
-- Time-based efficiency metrics
-
-### 🗺️ **Geographic Analysis**
-- Busiest pickup zones
-- Zone efficiency rankings
-- Distance-based trip categorization
-- Geographic fare patterns
-
-### 💰 **Economic Insights**
-- Fare per kilometer analysis
-- Distance-based pricing patterns
-- Vendor market share analysis
-- Cost efficiency metrics
-
 ### 🚗 **Operational Intelligence**
 - Passenger count analysis
 - Trip duration patterns
 - Speed distribution analysis
-- Service quality metrics
 
 ## Future Enhancements
 
@@ -273,5 +250,5 @@ CREATE TABLE trips (
 ### **GROUP MEMBERS**
 
 -Umwari Vanessa
--Ihozo Honnette
+-Ihozo Marie Honnette
 -Kwizera Karangwa Laura

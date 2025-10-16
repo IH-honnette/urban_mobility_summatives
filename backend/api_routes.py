@@ -102,14 +102,20 @@ def get_trips():
         # Get query parameters
         start_date = request.args.get('start', '')
         end_date = request.args.get('end', '')
-        min_fare = float(request.args.get('min_fare', '0'))
+        min_fare_param = request.args.get('min_fare', '')
+        min_fare = float(min_fare_param) if min_fare_param else 0
 
         # Additional filters
-        min_dist = request.args.get('min_distance_km')
-        max_dist = request.args.get('max_distance_km')
-        passenger_min = request.args.get('passenger_min')
-        passenger_max = request.args.get('passenger_max')
-        pickup_zone = request.args.get('pickup_zone')
+        min_dist_param = request.args.get('min_distance_km', '')
+        max_dist_param = request.args.get('max_distance_km', '')
+        passenger_min_param = request.args.get('passenger_min', '')
+        passenger_max_param = request.args.get('passenger_max', '')
+        pickup_zone = request.args.get('pickup_zone', '')
+        
+        min_dist = float(min_dist_param) if min_dist_param else None
+        max_dist = float(max_dist_param) if max_dist_param else None
+        passenger_min = int(passenger_min_param) if passenger_min_param else None
+        passenger_max = int(passenger_max_param) if passenger_max_param else None
 
         # Pagination
         page = int(request.args.get('page', '1'))
@@ -130,8 +136,12 @@ def get_trips():
         sort_dir = 'DESC' if sort_dir != 'asc' else 'ASC'
         
         # Build dynamic WHERE clauses
-        where_clauses = ["t.fare_amount >= %s"]
-        params = [min_fare]
+        where_clauses = []
+        params = []
+        
+        # Always apply fare filter (minimum 0 if not specified)
+        where_clauses.append("t.fare_amount >= %s")
+        params.append(min_fare)
         
         if start_date:
             where_clauses.append("t.pickup_datetime >= %s")
@@ -139,19 +149,18 @@ def get_trips():
         if end_date:
             where_clauses.append("t.pickup_datetime <= %s")
             params.append(end_date)
-
         if min_dist is not None:
             where_clauses.append("t.trip_distance_km >= %s")
-            params.append(float(min_dist))
+            params.append(min_dist)
         if max_dist is not None:
             where_clauses.append("t.trip_distance_km <= %s")
-            params.append(float(max_dist))
+            params.append(max_dist)
         if passenger_min is not None:
             where_clauses.append("t.passenger_count >= %s")
-            params.append(int(passenger_min))
+            params.append(passenger_min)
         if passenger_max is not None:
             where_clauses.append("t.passenger_count <= %s")
-            params.append(int(passenger_max))
+            params.append(passenger_max)
         if pickup_zone:
             where_clauses.append("pz.zone_name = %s")
             params.append(pickup_zone)

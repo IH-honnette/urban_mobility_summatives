@@ -17,7 +17,10 @@ This is the Flask backend for the Urban Mobility Data Explorer application. It p
 
 ### 1. Install Dependencies
 
+Make sure to add the the train.csv file to the backend directory.
+
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
@@ -51,7 +54,7 @@ This will:
 python app.py
 ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `http://localhost:5003`
 
 ## API Endpoints
 
@@ -59,34 +62,6 @@ The API will be available at `http://localhost:5000`
 - `GET /api/stats` - Comprehensive urban mobility statistics
   - Returns: Overview metrics, vendor distribution, peak hours analysis
   - Includes: Total trips, average speeds, fare efficiency, market share
-
-### Trip Data & Filtering
-- `GET /api/trips` - Advanced trip filtering and sorting
-  - Parameters: `start`, `end`, `min_fare`, `min_distance_km`, `max_distance_km`, `passenger_min`, `passenger_max`, `pickup_zone`, `page`, `page_size`, `sort_by`, `sort_dir`
-  - Returns: Paginated trip data with vendor and zone information
-
-### Urban Mobility Insights
-- `GET /api/mobility-insights` - Comprehensive mobility patterns
-  - Returns: Hourly patterns, efficiency metrics, most efficient zones
-  - Insights: Speed analysis, fare efficiency, traffic patterns
-
-### Fare Analysis & Economics
-- `GET /api/fare-analysis` - Detailed fare economics
-  - Parameters: `start`, `end`, `limit`
-  - Returns: Fare statistics, distance-based pricing, sample data for visualization
-
-### Vendor Performance
-- `GET /api/vendor-performance` - Vendor comparison and analysis
-  - Returns: Performance metrics, operational periods, efficiency rankings
-
-### Zone Analysis
-- `GET /api/busiest-zones` - Top pickup zones with coordinates
-- `GET /api/analytics` - Comprehensive analytics dashboard
-  - Returns: Weekly patterns, distance distribution, passenger analysis
-
-### Time-Based Analysis
-- `GET /api/hourly-distribution` - Trip distribution by hour
-  - Parameters: `start`, `end`
 
 ## Data Processing
 
