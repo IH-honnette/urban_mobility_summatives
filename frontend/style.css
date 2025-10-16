@@ -353,6 +353,19 @@ body {
   margin-bottom: var(--spacing-xl);
 }
 
+/* Zone Analysis - Block Layout */
+#zones-section .charts-grid {
+  display: block;
+}
+
+#zones-section .chart-card {
+  margin-bottom: var(--spacing-lg);
+}
+
+#zones-section .chart-card:last-child {
+  margin-bottom: 0;
+}
+
 .chart-card {
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
@@ -421,7 +434,6 @@ body {
 
 .insight-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
 }
@@ -471,7 +483,6 @@ body {
   padding: var(--spacing-sm);
   background: var(--bg-tertiary);
   border-radius: var(--radius-sm);
-  border-left: 3px solid var(--primary);
 }
 
 .insight-item i {
@@ -501,7 +512,6 @@ body {
   padding: var(--spacing-md);
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--success);
 }
 
 .zone-name {
@@ -523,7 +533,6 @@ body {
 
 .stat-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
 }
@@ -572,7 +581,6 @@ body {
 
 .vendor-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   transition: all var(--transition-normal);
@@ -656,7 +664,6 @@ body {
   padding: var(--spacing-md);
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--primary);
 }
 
 .zone-info {
@@ -684,7 +691,6 @@ body {
 /* Filters */
 .filters-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
@@ -748,7 +754,6 @@ body {
 .filter-group input,
 .filter-group select {
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
   padding: var(--spacing-sm);
   color: var(--text-primary);
@@ -809,7 +814,6 @@ body {
 .btn-secondary {
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  border: 1px solid var(--border-primary);
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--radius-md);
   font-weight: 500;
@@ -828,7 +832,6 @@ body {
 /* Table */
 .table-card {
   background: var(--bg-card);
-  border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
 }
@@ -857,7 +860,6 @@ body {
 .table-wrapper {
   overflow-x: auto;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-primary);
 }
 
 .trips-table {
@@ -1025,6 +1027,11 @@ body {
   
   .charts-grid {
     grid-template-columns: 1fr;
+  }
+  
+  /* Zone Analysis remains block layout on mobile */
+  #zones-section .charts-grid {
+    display: block;
   }
 }
 

@@ -224,6 +224,41 @@ def get_trips():
         cursor.close()
         conn.close()
 
+@api_bp.route('/zones', methods=['GET'])
+def get_all_zones():
+    """Get all zones for filtering"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT 
+                id,
+                zone_name,
+                latitude,
+                longitude
+            FROM zones
+            ORDER BY zone_name
+        """)
+        
+        zones = []
+        for row in cursor.fetchall():
+            zones.append({
+                'id': int(row[0]),
+                'zone_name': row[1],
+                'latitude': float(row[2]),
+                'longitude': float(row[3])
+            })
+        
+        return jsonify(zones)
+        
+    except Exception as e:
+        logger.error(f"Error getting zones: {e}")
+        return jsonify({'error': 'Failed to get zones'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @api_bp.route('/busiest-zones', methods=['GET'])
 def get_busiest_zones():
     """Get busiest pickup zones - using normalized tables"""
@@ -258,6 +293,45 @@ def get_busiest_zones():
     except Exception as e:
         logger.error(f"Error getting busiest zones: {e}")
         return jsonify({'error': 'Failed to get busiest zones'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@api_bp.route('/all-zones-with-counts', methods=['GET'])
+def get_all_zones_with_counts():
+    """Get all zones with their trip counts for map visualization"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT 
+                pz.id,
+                pz.zone_name,
+                pz.latitude as lat,
+                pz.longitude as lon,
+                COUNT(t.id) as count
+            FROM zones pz
+            LEFT JOIN trips t ON pz.id = t.pickup_zone_id
+            GROUP BY pz.id, pz.zone_name, pz.latitude, pz.longitude
+            ORDER BY count DESC, pz.zone_name
+        """)
+        
+        zones = []
+        for row in cursor.fetchall():
+            zones.append({
+                'id': int(row[0]),
+                'zone': row[1],
+                'lat': float(row[2]),
+                'lon': float(row[3]),
+                'count': int(row[4])
+            })
+        
+        return jsonify(zones)
+        
+    except Exception as e:
+        logger.error(f"Error getting all zones with counts: {e}")
+        return jsonify({'error': 'Failed to get all zones with counts'}), 500
     finally:
         cursor.close()
         conn.close()
@@ -549,95 +623,3 @@ def get_vendor_performance():
         cursor.close()
         conn.close()
 
-@api_bp.route('/analytics', methods=['GET'])
-def get_comprehensive_analytics():
-    """Get comprehensive analytics dashboard data"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    try:
-        # Get time-based patterns
-        cursor.execute("""
-            SELECT 
-                EXTRACT(DOW FROM pickup_datetime) as day_of_week,
-                COUNT(*) as trip_count,
-                AVG(trip_speed_kmh) as avg_speed,
-                AVG(fare_amount) as avg_fare
-            FROM trips
-            GROUP BY EXTRACT(DOW FROM pickup_datetime)
-            ORDER BY day_of_week
-        """)
-        
-        weekly_patterns = []
-        day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        for row in cursor.fetchall():
-            weekly_patterns.append({
-                'day_of_week': int(row[0]),
-                'day_name': day_names[int(row[0])],
-                'trip_count': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_fare': round(float(row[3]), 2)
-            })
-        
-        # Get distance distribution
-        cursor.execute("""
-            SELECT 
-                CASE 
-                    WHEN trip_distance_km < 1 THEN 'Very Short (<1km)'
-                    WHEN trip_distance_km < 3 THEN 'Short (1-3km)'
-                    WHEN trip_distance_km < 5 THEN 'Medium (3-5km)'
-                    WHEN trip_distance_km < 10 THEN 'Long (5-10km)'
-                    ELSE 'Very Long (>10km)'
-                END as distance_range,
-                COUNT(*) as trip_count,
-                AVG(trip_speed_kmh) as avg_speed,
-                AVG(fare_per_km) as avg_fare_per_km
-            FROM trips
-            GROUP BY distance_range
-            ORDER BY AVG(trip_distance_km)
-        """)
-        
-        distance_distribution = []
-        for row in cursor.fetchall():
-            distance_distribution.append({
-                'distance_range': row[0],
-                'trip_count': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_fare_per_km': round(float(row[3]), 2)
-            })
-        
-        # Get passenger count analysis
-        cursor.execute("""
-            SELECT 
-                passenger_count,
-                COUNT(*) as trip_count,
-                AVG(trip_distance_km) as avg_distance,
-                AVG(fare_amount) as avg_fare,
-                AVG(trip_speed_kmh) as avg_speed
-            FROM trips
-            GROUP BY passenger_count
-            ORDER BY passenger_count
-        """)
-        
-        passenger_analysis = []
-        for row in cursor.fetchall():
-            passenger_analysis.append({
-                'passenger_count': int(row[0]),
-                'trip_count': int(row[1]),
-                'avg_distance_km': round(float(row[2]), 2),
-                'avg_fare': round(float(row[3]), 2),
-                'avg_speed_kmh': round(float(row[4]), 2)
-            })
-        
-        return jsonify({
-            'weekly_patterns': weekly_patterns,
-            'distance_distribution': distance_distribution,
-            'passenger_analysis': passenger_analysis
-        })
-        
-    except Exception as e:
-        logger.error(f"Error getting analytics: {e}")
-        return jsonify({'error': 'Failed to get analytics'}), 500
-    finally:
-        cursor.close()
-        conn.close()

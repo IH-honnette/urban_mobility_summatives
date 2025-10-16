@@ -46,13 +46,9 @@
           <i class="fas fa-map-marker-alt"></i>
           <span>Zone Analysis</span>
         </div>
-        <div class="menu-item" data-section="analytics">
-          <i class="fas fa-chart-bar"></i>
-          <span>Advanced Analytics</span>
-        </div>
         <div class="menu-item" data-section="trips">
           <i class="fas fa-list"></i>
-          <span>Trip Explorer</span>
+          <span>Trips</span>
         </div>
       </div>
     </div>
@@ -291,52 +287,6 @@
         </div>
       </section>
 
-      <!-- Advanced Analytics Section -->
-      <section class="content-section" id="analytics-section">
-        <div class="section-header">
-          <h2><i class="fas fa-chart-bar"></i> Advanced Analytics</h2>
-          <p>Comprehensive data analysis and patterns</p>
-        </div>
-
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3><i class="fas fa-calendar-week"></i> Weekly Patterns</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="weeklyChart"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3><i class="fas fa-route"></i> Distance Distribution</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="distanceChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3><i class="fas fa-users"></i> Passenger Analysis</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="passengerChart"></canvas>
-            </div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3><i class="fas fa-chart-scatter"></i> Geographic Heatmap</h3>
-            </div>
-            <div class="chart-container">
-              <canvas id="heatmapChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Trip Explorer Section -->
       <section class="content-section" id="trips-section">
         <div class="section-header">
@@ -367,25 +317,16 @@
               </div>
             </div>
             <div class="filter-group">
-              <label><i class="fas fa-dollar-sign"></i> Fare Range</label>
-              <div class="range-control">
-                <input type="range" id="fare-slider" min="0" max="100" value="0" step="1">
-                <span id="fare-value">$0</span>
-              </div>
+              <label><i class="fas fa-dollar-sign"></i> Fare Amount</label>
+              <input type="number" id="fare-amount" min="0" step="0.01" placeholder="Enter fare amount">
             </div>
             <div class="filter-group">
-              <label><i class="fas fa-route"></i> Distance Range (km)</label>
-              <div class="range-inputs">
-                <input type="number" id="min-distance" min="0" step="0.1" placeholder="Min">
-                <input type="number" id="max-distance" min="0" step="0.1" placeholder="Max">
-              </div>
+              <label><i class="fas fa-route"></i> Distance (km)</label>
+              <input type="number" id="distance" min="0" step="0.1" placeholder="Enter distance">
             </div>
             <div class="filter-group">
               <label><i class="fas fa-users"></i> Passengers</label>
-              <div class="range-inputs">
-                <input type="number" id="passenger-min" min="1" max="6" step="1" placeholder="Min">
-                <input type="number" id="passenger-max" min="1" max="6" step="1" placeholder="Max">
-              </div>
+              <input type="number" id="passengers" min="1" max="6" step="1" placeholder="Enter passenger count">
             </div>
             <div class="filter-group">
               <label><i class="fas fa-map-marker-alt"></i> Pickup Zone</label>

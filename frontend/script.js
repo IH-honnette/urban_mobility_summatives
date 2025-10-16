@@ -1,6 +1,3 @@
-// Urban Mobility Analytics Dashboard
-// Professional dashboard with enhanced API integration
-
 class UrbanMobilityDashboard {
   constructor() {
     this.apiBase = 'http://localhost:5003/api';
@@ -49,13 +46,6 @@ class UrbanMobilityDashboard {
       this.resetFilters();
     });
 
-    // Fare slider
-    const fareSlider = document.getElementById('fare-slider');
-const fareValue = document.getElementById('fare-value');
-fareSlider.addEventListener('input', () => {
-  fareValue.textContent = '$' + fareSlider.value;
-});
-
     // Pagination
     this.setupPaginationListeners();
   }
@@ -88,7 +78,7 @@ fareSlider.addEventListener('input', () => {
         this.loadFareAnalysis(),
         this.loadVendorPerformance(),
         this.loadBusiestZones(),
-        this.loadAnalytics()
+        this.loadZones()
       ]);
       this.hideLoading();
     } catch (error) {
@@ -114,11 +104,11 @@ fareSlider.addEventListener('input', () => {
       case 'zones':
         await this.loadBusiestZones();
         break;
-      case 'analytics':
-        await this.loadAnalytics();
-        break;
       case 'trips':
-        await this.loadTripsData();
+        await Promise.all([
+          this.loadZones(),
+          this.loadTripsData()
+        ]);
         break;
     }
   }
@@ -193,30 +183,59 @@ fareSlider.addEventListener('input', () => {
 
   async loadBusiestZones() {
     try {
-      const response = await fetch(`${this.apiBase}/busiest-zones`);
+      // Load all zones with counts for the map
+      const allZonesResponse = await fetch(`${this.apiBase}/all-zones-with-counts`);
+      if (!allZonesResponse.ok) {
+        throw new Error(`HTTP error! status: ${allZonesResponse.status}`);
+      }
+      const allZonesData = await allZonesResponse.json();
+      
+      // Load busiest zones for the list
+      const busiestZonesResponse = await fetch(`${this.apiBase}/busiest-zones`);
+      if (!busiestZonesResponse.ok) {
+        throw new Error(`HTTP error! status: ${busiestZonesResponse.status}`);
+      }
+      const busiestZonesData = await busiestZonesResponse.json();
+      
+      console.log('All zones data received:', allZonesData);
+      console.log('Busiest zones data received:', busiestZonesData);
+      
+      this.data.allZones = allZonesData;
+      this.data.zones = busiestZonesData;
+      this.renderZonesMap(allZonesData);
+      this.renderBusiestZones(busiestZonesData);
+    } catch (error) {
+      console.error('Error loading zones:', error);
+      this.showError('Failed to load zone data');
+    }
+  }
+
+  async loadZones() {
+    try {
+      const response = await fetch(`${this.apiBase}/zones`);
       const data = await response.json();
       
-      this.data.zones = data;
-      this.renderZonesMap(data);
-      this.renderBusiestZones(data);
+      this.data.allZones = data;
+      this.populateZoneDropdown(data);
     } catch (error) {
       console.error('Error loading zones:', error);
     }
   }
 
-  async loadAnalytics() {
-    try {
-      const response = await fetch(`${this.apiBase}/analytics`);
-      const data = await response.json();
-      
-      this.data.analytics = data;
-      this.renderWeeklyChart(data.weekly_patterns);
-      this.renderDistanceChart(data.distance_distribution);
-      this.renderPassengerChart(data.passenger_analysis);
-      this.renderHeatmapChart(data);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    }
+  populateZoneDropdown(zones) {
+    const dropdown = document.getElementById('pickup-zone');
+    if (!dropdown) return;
+
+    // Clear existing options except the first one
+    dropdown.innerHTML = '<option value="">All Zones</option>';
+    
+    // Add zone options
+    zones.forEach(zone => {
+      const option = document.createElement('option');
+      option.value = zone.zone_name;
+      option.textContent = zone.zone_name;
+      dropdown.appendChild(option);
+    });
   }
 
   async loadTripsData() {
@@ -238,22 +257,18 @@ fareSlider.addEventListener('input', () => {
     
     const startDate = document.getElementById('start-date').value;
     const endDate = document.getElementById('end-date').value;
-    const minFare = document.getElementById('fare-slider').value;
-    const minDistance = document.getElementById('min-distance').value;
-    const maxDistance = document.getElementById('max-distance').value;
-    const passengerMin = document.getElementById('passenger-min').value;
-    const passengerMax = document.getElementById('passenger-max').value;
+    const fareAmount = document.getElementById('fare-amount').value;
+    const distance = document.getElementById('distance').value;
+    const passengers = document.getElementById('passengers').value;
     const pickupZone = document.getElementById('pickup-zone').value;
     const sortBy = document.getElementById('sort-by').value;
     const sortDir = document.getElementById('sort-dir').value;
     
     if (startDate) params.append('start', startDate);
     if (endDate) params.append('end', endDate);
-    if (minFare) params.append('min_fare', minFare);
-    if (minDistance) params.append('min_distance_km', minDistance);
-    if (maxDistance) params.append('max_distance_km', maxDistance);
-    if (passengerMin) params.append('passenger_min', passengerMin);
-    if (passengerMax) params.append('passenger_max', passengerMax);
+    if (fareAmount) params.append('min_fare', fareAmount);
+    if (distance) params.append('min_distance_km', distance);
+    if (passengers) params.append('passenger_min', passengers);
     if (pickupZone) params.append('pickup_zone', pickupZone);
     
     params.append('page', this.currentPage);
@@ -661,51 +676,125 @@ fareSlider.addEventListener('input', () => {
   }
 
   renderZonesMap(zones) {
-  const mapContainer = document.getElementById('zones-map');
-  if (!mapContainer) return;
-  
-  // Clear existing map
+    const mapContainer = document.getElementById('zones-map');
+    if (!mapContainer) {
+      console.error('Map container not found');
+      return;
+    }
+    
+    console.log('Rendering zones map with data:', zones);
+    
+    // Clear existing map
     if (this.zonesMap) {
       this.zonesMap.remove();
-  }
-  
-  // Initialize map centered on NYC
+    }
+    
+    // Initialize map centered on NYC
     this.zonesMap = L.map('zones-map').setView([40.7128, -74.0060], 11);
-  
-  // Add dark tile layer
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
+    
+    // Add dark tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
     }).addTo(this.zonesMap);
-  
-  // Add zone markers
-  zones.forEach((zone, index) => {
-      const color = this.getZoneColor(index);
-      const size = Math.max(8, Math.min(20, zone.count / 50));
     
-    const marker = L.circleMarker([zone.lat, zone.lon], {
-      radius: size,
-      fillColor: color,
-      color: '#fff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.8
-      }).addTo(this.zonesMap);
+    // Sort zones by trip count to determine busiest zones
+    const sortedZones = [...zones].sort((a, b) => b.count - a.count);
+    const busiestZones = sortedZones.slice(0, 20); // Top 20 busiest zones
     
-    marker.bindPopup(`
-      <div style="color: white; font-family: Inter, sans-serif;">
-        <h4 style="margin: 0 0 8px 0; color: #00f0ff;">${zone.zone}</h4>
-        <p style="margin: 4px 0;"><strong>Trip Count:</strong> ${zone.count.toLocaleString()}</p>
-        <p style="margin: 4px 0;"><strong>Coordinates:</strong><br>
-        Lat: ${zone.lat.toFixed(4)}<br>
-        Lon: ${zone.lon.toFixed(4)}</p>
-        <p style="margin: 4px 0; font-size: 0.9em; color: #b0b0b0;">
-        Rank: #${index + 1} busiest zone</p>
-      </div>
-    `);
-  });
-}
+    // Add zone markers with different styles
+    zones.forEach((zone, index) => {
+      const isBusiest = busiestZones.some(bz => bz.id === zone.id);
+      const rank = sortedZones.findIndex(z => z.id === zone.id) + 1;
+      
+      // Different styling for busiest vs other zones
+      const markerStyle = isBusiest ? {
+        radius: Math.max(12, Math.min(25, zone.count / 30)), // Larger for busiest
+        fillColor: this.getZoneColor(rank - 1),
+        color: '#fff',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.9
+      } : {
+        radius: Math.max(6, Math.min(12, zone.count / 100)), // Smaller for others
+        fillColor: '#666666',
+        color: '#999999',
+        weight: 1,
+        opacity: 0.8,
+        fillOpacity: 0.6
+      };
+      
+      const marker = L.circleMarker([zone.lat, zone.lon], markerStyle).addTo(this.zonesMap);
+      
+      // Different popup content based on zone type
+      const popupContent = isBusiest ? `
+        <div style="color: white; font-family: Inter, sans-serif;">
+          <h4 style="margin: 0 0 8px 0; color: #00f0ff;">🔥 ${zone.zone}</h4>
+          <p style="margin: 4px 0;"><strong>Trip Count:</strong> ${zone.count.toLocaleString()}</p>
+          <p style="margin: 4px 0;"><strong>Coordinates:</strong><br>
+          Lat: ${zone.lat.toFixed(4)}<br>
+          Lon: ${zone.lon.toFixed(4)}</p>
+          <p style="margin: 4px 0; font-size: 0.9em; color: #ffd700;">
+           Rank: #${rank} busiest zone</p>
+        </div>
+      ` : `
+        <div style="color: white; font-family: Inter, sans-serif;">
+          <h4 style="margin: 0 0 8px 0; color: #b0b0b0;">📍 ${zone.zone}</h4>
+          <p style="margin: 4px 0;"><strong>Trip Count:</strong> ${zone.count.toLocaleString()}</p>
+          <p style="margin: 4px 0;"><strong>Coordinates:</strong><br>
+          Lat: ${zone.lat.toFixed(4)}<br>
+          Lon: ${zone.lon.toFixed(4)}</p>
+          <p style="margin: 4px 0; font-size: 0.9em; color: #808080;">
+          Rank: #${rank} overall</p>
+        </div>
+      `;
+      
+      marker.bindPopup(popupContent);
+    });
+    
+    // Add legend
+    this.addMapLegend();
+    
+    console.log('Map rendered successfully with', zones.length, 'zones');
+  }
+
+  addMapLegend() {
+    const legend = L.control({position: 'bottomright'});
+    
+    legend.onAdd = function(map) {
+      const div = L.DomUtil.create('div', 'map-legend');
+      div.style.cssText = `
+        background: rgba(30, 30, 30, 0.9);
+        padding: 12px;
+        border-radius: 8px;
+        color: white;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        border: 1px solid #444;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      `;
+      
+      div.innerHTML = `
+        <div style="margin-bottom: 8px; font-weight: 600; color: #00f0ff;">Zone Types</div>
+        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+          <div style="width: 12px; height: 12px; background: #00f0ff; border-radius: 50%; margin-right: 8px; border: 2px solid white;"></div>
+          <span>🔥 Busiest Zones (Top 20)</span>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <div style="width: 8px; height: 8px; background: #666; border-radius: 50%; margin-right: 8px; border: 1px solid #999;"></div>
+          <span>📍 Other Zones</span>
+        </div>
+        <div style="margin-top: 8px; font-size: 10px; color: #b0b0b0;">
+          Marker size indicates trip volume
+        </div>
+      `;
+      
+      return div;
+    };
+    
+    legend.addTo(this.zonesMap);
+  }
 
   renderBusiestZones(zones) {
     const container = document.getElementById('busiest-zones');
@@ -723,192 +812,6 @@ fareSlider.addEventListener('input', () => {
         <div class="zone-count">${zone.count.toLocaleString()}</div>
       `;
       container.appendChild(item);
-    });
-  }
-
-  renderWeeklyChart(weeklyPatterns) {
-    const ctx = document.getElementById('weeklyChart');
-    if (!ctx) return;
-
-    if (this.charts.weekly) {
-      this.charts.weekly.destroy();
-    }
-
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    this.charts.weekly = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: weeklyPatterns.map(p => dayNames[p.day_of_week]),
-        datasets: [{
-          label: 'Trip Count',
-          data: weeklyPatterns.map(p => p.trip_count),
-          backgroundColor: '#00f0ff',
-          borderColor: '#00d4e6',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: '#b0b0b0' }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          }
-        }
-      }
-    });
-  }
-
-  renderDistanceChart(distanceDistribution) {
-    const ctx = document.getElementById('distanceChart');
-    if (!ctx) return;
-
-    if (this.charts.distance) {
-      this.charts.distance.destroy();
-    }
-
-    this.charts.distance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: distanceDistribution.map(d => d.distance_range),
-        datasets: [{
-          label: 'Trip Count',
-          data: distanceDistribution.map(d => d.trip_count),
-          backgroundColor: '#ffd700',
-          borderColor: '#ffaa00',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: '#b0b0b0' }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          }
-        }
-      }
-    });
-  }
-
-  renderPassengerChart(passengerAnalysis) {
-    const ctx = document.getElementById('passengerChart');
-    if (!ctx) return;
-
-    if (this.charts.passenger) {
-      this.charts.passenger.destroy();
-    }
-
-    this.charts.passenger = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: passengerAnalysis.map(p => `${p.passenger_count} Passenger${p.passenger_count > 1 ? 's' : ''}`),
-        datasets: [{
-          data: passengerAnalysis.map(p => p.trip_count),
-          backgroundColor: [
-            '#00f0ff',
-            '#ffd700',
-            '#ff6b6b',
-            '#00ff88',
-            '#4488ff',
-            '#ffaa00'
-          ],
-          borderWidth: 2,
-          borderColor: '#1a1a1a'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: '#b0b0b0',
-              font: { size: 12 }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  renderHeatmapChart(data) {
-    const ctx = document.getElementById('heatmapChart');
-    if (!ctx) return;
-
-    if (this.charts.heatmap) {
-      this.charts.heatmap.destroy();
-    }
-
-    // Use sample data from trips for heatmap
-    const sampleData = this.data.trips?.data?.slice(0, 1000) || [];
-    
-    this.charts.heatmap = new Chart(ctx, {
-      type: 'scatter',
-      data: {
-        datasets: [{
-          label: 'Pickup Locations',
-          data: sampleData.map(t => ({
-            x: parseFloat(t.pickup_longitude),
-            y: parseFloat(t.pickup_latitude),
-            r: Math.min(parseFloat(t.fare_amount) / 5, 10)
-          })),
-          backgroundColor: 'rgba(0, 240, 255, 0.6)',
-          borderColor: '#00f0ff',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: '#b0b0b0' }
-          }
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Longitude',
-              color: '#b0b0b0'
-            },
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'Latitude',
-              color: '#b0b0b0'
-            },
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#b0b0b0' }
-          }
-        }
-      }
     });
   }
 
@@ -1011,12 +914,9 @@ fareSlider.addEventListener('input', () => {
   resetFilters() {
     document.getElementById('start-date').value = '';
     document.getElementById('end-date').value = '';
-    document.getElementById('fare-slider').value = 0;
-    document.getElementById('fare-value').textContent = '$0';
-    document.getElementById('min-distance').value = '';
-    document.getElementById('max-distance').value = '';
-    document.getElementById('passenger-min').value = '';
-    document.getElementById('passenger-max').value = '';
+    document.getElementById('fare-amount').value = '';
+    document.getElementById('distance').value = '';
+    document.getElementById('passengers').value = '';
     document.getElementById('pickup-zone').value = '';
     document.getElementById('sort-by').value = 'pickup_datetime';
     document.getElementById('sort-dir').value = 'desc';
@@ -1027,7 +927,6 @@ fareSlider.addEventListener('input', () => {
   }
 
   showTripDetails(tripId) {
-    // Find trip data from current page
     const trip = this.data.trips?.data?.find(t => t.id === tripId);
     if (trip) {
       alert(`Trip Details:\n\nID: ${trip.id}\nPickup: ${new Date(trip.pickup_datetime).toLocaleString()}\nDropoff: ${new Date(trip.dropoff_datetime).toLocaleString()}\nDistance: ${trip.trip_distance_km} km\nDuration: ${(trip.trip_duration / 60).toFixed(1)} min\nSpeed: ${trip.trip_speed_kmh} km/h\nFare: $${trip.fare_amount}\nPassengers: ${trip.passenger_count}\nPickup Zone: ${trip.pickup_zone}\nDropoff Zone: ${trip.dropoff_zone}\nVendor: ${trip.vendor_name}`);
@@ -1051,7 +950,6 @@ fareSlider.addEventListener('input', () => {
   }
 
   showError(message) {
-    // Create error notification
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
     errorDiv.textContent = message;
@@ -1081,7 +979,6 @@ fareSlider.addEventListener('input', () => {
   }
 }
 
-// Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   window.dashboard = new UrbanMobilityDashboard();
 });
