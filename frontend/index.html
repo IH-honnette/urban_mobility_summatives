@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Urban Mobility Analytics Dashboard</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fas fa-chart-line"></i>
+        <span>NYC</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <div class="sidebar-menu">
+      <div class="menu-section">
+        <div class="menu-item active" data-section="overview">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Overview</span>
+        </div>
+        <div class="menu-item" data-section="mobility">
+          <i class="fas fa-car"></i>
+          <span>Mobility Insights</span>
+        </div>
+        <div class="menu-item" data-section="fare-analysis">
+          <i class="fas fa-dollar-sign"></i>
+          <span>Fare Analysis</span>
+        </div>
+        <div class="menu-item" data-section="vendor-performance">
+          <i class="fas fa-building"></i>
+          <span>Vendor Performance</span>
+        </div>
+        <div class="menu-item" data-section="zones">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Zone Analysis</span>
+        </div>
+        <div class="menu-item" data-section="analytics">
+          <i class="fas fa-chart-bar"></i>
+          <span>Advanced Analytics</span>
+        </div>
+        <div class="menu-item" data-section="trips">
+          <i class="fas fa-list"></i>
+          <span>Trip Explorer</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="main-content">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1>Urban Mobility Data Explorer</h1>
+        <p>Insights into NYC taxi trip data</p>
+      </div>
+      <div class="header-right">
+        <button class="btn-refresh" id="refresh-btn">
+          <i class="fas fa-sync-alt"></i>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <div class="content-wrapper">
+      
+      <!-- Overview Section -->
+      <section class="content-section active" id="overview-section">
+        <div class="section-header">
+          <h2><i class="fas fa-tachometer-alt"></i> Overview Dashboard</h2>
+          <p>Key metrics and performance indicators</p>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-taxi"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="total-trips">—</div>
+              <div class="metric-label">Total Trips</div>
+              <div class="metric-change" id="trips-change">+0%</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="avg-speed">—</div>
+              <div class="metric-label">Avg Speed</div>
+              <div class="metric-change" id="speed-change">+0%</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="avg-fare-per-km">—</div>
+              <div class="metric-label">Fare per KM</div>
+              <div class="metric-change" id="fare-change">+0%</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="avg-duration">—</div>
+              <div class="metric-label">Avg Duration</div>
+              <div class="metric-change" id="duration-change">+0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-pie"></i> Vendor Distribution</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="vendorChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Peak Hours & Insights -->
+        <div class="insights-grid">
+          <div class="insight-card">
+            <h3><i class="fas fa-fire"></i> Peak Hours</h3>
+            <div class="peak-hours" id="peak-hours">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+          <div class="insight-card">
+            <h3><i class="fas fa-lightbulb"></i> Key Insights</h3>
+            <div class="insights-list" id="key-insights">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobility Insights Section -->
+      <section class="content-section" id="mobility-section">
+        <div class="section-header">
+          <h2><i class="fas fa-car"></i> Mobility Insights</h2>
+          <p>Traffic patterns and efficiency analysis</p>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-tachometer-alt"></i> Speed Analysis by Hour</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="speedHourlyChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-line"></i> Efficiency Metrics</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="efficiencyChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="efficiency-metrics">
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="fast-trips">—</div>
+              <div class="metric-label">Fast Trips (>30 km/h)</div>
+              <div class="metric-percentage" id="fast-trips-pct">—</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <i class="fas fa-snail"></i>
+            </div>
+            <div class="metric-content">
+              <div class="metric-value" id="slow-trips">—</div>
+              <div class="metric-label">Slow Trips (<10 km/h)</div>
+              <div class="metric-percentage" id="slow-trips-pct">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-map-marked-alt"></i> Most Efficient Zones</h3>
+          </div>
+          <div class="efficient-zones" id="efficient-zones">
+            <!-- Dynamic content -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Fare Analysis Section -->
+      <section class="content-section" id="fare-analysis-section">
+        <div class="section-header">
+          <h2><i class="fas fa-dollar-sign"></i> Fare Analysis</h2>
+          <p>Pricing patterns and economic insights</p>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-scatter"></i> Fare vs Distance</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="fareDistanceChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-bar"></i> Fare by Distance Category</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="fareCategoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="fare-statistics">
+          <div class="stat-card">
+            <h3><i class="fas fa-calculator"></i> Fare Statistics</h3>
+            <div class="stat-grid" id="fare-stats">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vendor Performance Section -->
+      <section class="content-section" id="vendor-performance-section">
+        <div class="section-header">
+          <h2><i class="fas fa-building"></i> Vendor Performance</h2>
+          <p>Service provider comparison and analysis</p>
+        </div>
+
+        <div class="vendor-performance-grid" id="vendor-performance-grid">
+          <!-- Dynamic content -->
+        </div>
+      </section>
+
+      <!-- Zone Analysis Section -->
+      <section class="content-section" id="zones-section">
+        <div class="section-header">
+          <h2><i class="fas fa-map-marker-alt"></i> Zone Analysis</h2>
+          <p>Geographic patterns and hotspot identification</p>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-map"></i> Interactive Zone Map</h3>
+            </div>
+            <div class="map-container">
+              <div id="zones-map" class="zones-map"></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-trophy"></i> Top Busiest Zones</h3>
+            </div>
+            <div class="zones-list" id="busiest-zones">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced Analytics Section -->
+      <section class="content-section" id="analytics-section">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-bar"></i> Advanced Analytics</h2>
+          <p>Comprehensive data analysis and patterns</p>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-calendar-week"></i> Weekly Patterns</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="weeklyChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-route"></i> Distance Distribution</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="distanceChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-users"></i> Passenger Analysis</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="passengerChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-scatter"></i> Geographic Heatmap</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="heatmapChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trip Explorer Section -->
+      <section class="content-section" id="trips-section">
+        <div class="section-header">
+          <h2><i class="fas fa-list"></i> Trip Explorer</h2>
+          <p>Detailed trip data with advanced filtering</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card">
+          <div class="filters-header">
+            <h3><i class="fas fa-filter"></i> Advanced Filters</h3>
+            <div class="filter-actions">
+              <button class="btn-primary" id="apply-filters">
+                <i class="fas fa-search"></i> Apply Filters
+              </button>
+              <button class="btn-secondary" id="reset-filters">
+                <i class="fas fa-undo"></i> Reset
+              </button>
+            </div>
+          </div>
+          
+          <div class="filters-grid">
+            <div class="filter-group">
+              <label><i class="fas fa-calendar"></i> Date Range</label>
+              <div class="date-range">
+                <input type="date" id="start-date" placeholder="Start Date">
+                <input type="date" id="end-date" placeholder="End Date">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label><i class="fas fa-dollar-sign"></i> Fare Range</label>
+              <div class="range-control">
+                <input type="range" id="fare-slider" min="0" max="100" value="0" step="1">
+                <span id="fare-value">$0</span>
+              </div>
+            </div>
+            <div class="filter-group">
+              <label><i class="fas fa-route"></i> Distance Range (km)</label>
+              <div class="range-inputs">
+                <input type="number" id="min-distance" min="0" step="0.1" placeholder="Min">
+                <input type="number" id="max-distance" min="0" step="0.1" placeholder="Max">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label><i class="fas fa-users"></i> Passengers</label>
+              <div class="range-inputs">
+                <input type="number" id="passenger-min" min="1" max="6" step="1" placeholder="Min">
+                <input type="number" id="passenger-max" min="1" max="6" step="1" placeholder="Max">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label><i class="fas fa-map-marker-alt"></i> Pickup Zone</label>
+              <select id="pickup-zone">
+                <option value="">All Zones</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label><i class="fas fa-sort"></i> Sort & View</label>
+              <div class="sort-controls">
+                <select id="sort-by">
+                  <option value="pickup_datetime">Pickup Time</option>
+                  <option value="fare_amount">Fare Amount</option>
+                  <option value="trip_distance_km">Distance</option>
+                  <option value="trip_duration">Duration</option>
+                  <option value="trip_speed_kmh">Speed</option>
+                </select>
+                <select id="sort-dir">
+                  <option value="desc">Descending</option>
+                  <option value="asc">Ascending</option>
+                </select>
+                <select id="page-size">
+                  <option value="25">25/page</option>
+                  <option value="50" selected>50/page</option>
+                  <option value="100">100/page</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip Table -->
+        <div class="table-card">
+          <div class="table-header">
+            <h3><i class="fas fa-table"></i> Trip Data</h3>
+            <div class="table-info" id="table-info">Loading...</div>
+          </div>
+          
+          <div class="table-wrapper">
+            <table class="trips-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Pickup Time</th>
+                  <th>Distance</th>
+                  <th>Duration</th>
+                  <th>Speed</th>
+                  <th>Fare</th>
+                  <th>Passengers</th>
+                  <th>Zones</th>
+                  <th>Vendor</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="trips-tbody"></tbody>
+            </table>
+          </div>
+          
+          <div class="pagination" id="pagination">
+            <!-- Dynamic pagination -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading data...</p>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
