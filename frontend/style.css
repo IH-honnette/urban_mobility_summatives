@@ -748,6 +748,37 @@ body {
   flex-wrap: wrap;
 }
 
+.range-inputs {
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.range-separator {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  text-align: center;
+  margin: var(--spacing-xs) 0;
+}
+
+.range-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.range-group input {
+  flex: 1;
+}
+
+.range-group span {
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 10px;
+  text-align: center;
+}
+
 .date-range input {
   flex: 1;
   min-width: 120px;

@@ -61,7 +61,7 @@ def clear_existing_data():
 
 def insert_cleaned_csv(path: str, batch_size: int = 100) -> int:
     """Insert records from cleaned CSV into the normalized database in batches.
-    Note: Processing is limited to 1000 records for performance."""
+    Note: Processing is limited to 5000 records for performance."""
     if not os.path.exists(path):
         raise FileNotFoundError(f"Cleaned CSV not found at: {path}. Run clean_data.py first.")
     
@@ -70,9 +70,9 @@ def insert_cleaned_csv(path: str, batch_size: int = 100) -> int:
     total_inserted = 0
     
     try:
-        # Read only first 1000 records for performance
-        df = pd.read_csv(path, nrows=1000)
-        print(f"📊 Processing {len(df)} records (limited to 1000 for performance)")
+        # Read only first 5000 records for performance
+        df = pd.read_csv(path, nrows=5000)
+        print(f"📊 Processing {len(df)} records (limited to 5000 for performance)")
         
         # Insert vendors first
         unique_vendors = df['vendor_id'].dropna().unique()
@@ -157,7 +157,7 @@ def insert_cleaned_csv(path: str, batch_size: int = 100) -> int:
             ))
             
             total_inserted += 1
-            if total_inserted % 100 == 0:
+            if total_inserted % 500 == 0:
                 print(f"✅ Inserted {total_inserted} trips...")
         
         conn.commit()
@@ -177,8 +177,8 @@ def clean_and_process_data():
     print("🧹 Cleaning and processing raw data...")
     processor = DataProcessor()
     
-    # Clean data and save to CSV (limited to 1000 records)
-    total_cleaned = processor.clean_all_data_and_save(max_records=1000)
+    # Clean data and save to CSV (limited to 5000 records)
+    total_cleaned = processor.clean_all_data_and_save(max_records=5000)
     print(f"✅ Data cleaning completed! {total_cleaned} records processed and saved to {CLEANED_CSV}")
     
     return total_cleaned
@@ -193,25 +193,11 @@ def main():
         print("Please create backend/.env with your PostgreSQL connection string.")
         sys.exit(1)
     
-    # Step 1: Handle database schema
+    # Step 1: Handle database schema - automatically drop and recreate
     print("\n📊 Database Schema Management")
     print("-" * 30)
-    
-    schema_choice = input("Choose database setup option:\n1. Drop and recreate tables (recommended for new schema)\n2. Keep existing tables and clear data\n3. Keep existing data\n\nEnter choice (1-3): ").strip()
-    
-    if schema_choice == '1':
-        drop_and_recreate_tables()
-    elif schema_choice == '2':
-        # Ensure tables exist with new schema
-        print("📊 Initializing database tables...")
-        init_db()
-        print("✅ Database tables are ready")
-        clear_existing_data()
-    else:
-        # Just ensure tables exist
-        print("📊 Initializing database tables...")
-        init_db()
-        print("✅ Database tables are ready")
+    print("🔄 Automatically dropping and recreating tables...")
+    drop_and_recreate_tables()
     
     # Step 2: Handle data processing
     print("\n📁 Data Processing")
@@ -219,9 +205,8 @@ def main():
     
     if os.path.exists(CLEANED_CSV):
         print(f"📁 Found existing cleaned CSV: {CLEANED_CSV}")
-        use_existing = input("Use existing cleaned data? (y/N): ").strip().lower()
-        if use_existing not in ['y', 'yes']:
-            clean_and_process_data()
+        print("🔄 Reprocessing all data to ensure consistency...")
+        clean_and_process_data()
     else:
         print(f"📁 No cleaned CSV found. Processing raw data...")
         clean_and_process_data()
@@ -229,7 +214,7 @@ def main():
     # Step 3: Insert data into database
     print("\n📥 Database Import")
     print("-" * 20)
-    print("📊 Note: Processing limited to 1000 records for performance")
+    print("📊 Processing limited to 5000 records for performance...")
     
     inserted = insert_cleaned_csv(CLEANED_CSV, batch_size=100)
     print(f"✅ Finished inserting {inserted} records into normalized database")

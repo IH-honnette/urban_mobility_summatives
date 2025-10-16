@@ -14,11 +14,11 @@ class DataProcessor:
         self.cleaned_file = 'cleaned_dataset.csv'
         self.excluded_records = []
         
-    def load_data(self, max_records=1000):
-        """Load data from CSV file - limited to 1000 records for performance"""
+    def load_data(self, max_records=5000):
+        """Load data from CSV file - limited to 5000 records for performance"""
         try:
             logger.info(f"Loading data from {self.csv_file} (limited to {max_records} records)")
-            # Read only the first 1000 records for performance
+            # Read only the first 5000 records for performance
             df = pd.read_csv(self.csv_file, nrows=max_records)
             logger.info(f"Loaded {len(df)} records")
             return df
@@ -26,8 +26,8 @@ class DataProcessor:
             logger.error(f"Error loading data: {e}")
             raise
     
-    def load_cleaned_data(self, max_records=1000):
-        """Load data from cleaned CSV file - limited to 1000 records for performance"""
+    def load_cleaned_data(self, max_records=5000):
+        """Load data from cleaned CSV file - limited to 5000 records for performance"""
         try:
             logger.info(f"Loading cleaned data from {self.cleaned_file} (limited to {max_records} records)")
             df = pd.read_csv(self.cleaned_file, nrows=max_records)
@@ -152,12 +152,12 @@ class DataProcessor:
         lon_bins = pd.cut(longitudes, bins=20, labels=False)
         return [f"Zone_{lat}_{lon}" for lat, lon in zip(lat_bins, lon_bins)]
     
-    def clean_all_data_and_save(self, max_records=1000):
-        """Clean all data and save to cleaned_dataset.csv - limited to 1000 records for performance"""
+    def clean_all_data_and_save(self, max_records=5000):
+        """Clean all data and save to cleaned_dataset.csv - limited to 5000 records for performance"""
         try:
             logger.info("Starting comprehensive data cleaning process...")
             
-            # Load data (limited to 1000 records)
+            # Load data (limited to 5000 records)
             df = self.load_data(max_records)
             original_count = len(df)
             logger.info(f"Starting with {original_count} records")
@@ -359,8 +359,8 @@ class DataProcessor:
         else:
             logger.info("Data already exists in database. Skipping processing.")
     
-    def clean_data_only(self, max_records=1000):
-        """Clean data and save to CSV without database insertion - limited to 1000 records for performance"""
+    def clean_data_only(self, max_records=5000):
+        """Clean data and save to CSV without database insertion - limited to 5000 records for performance"""
         print("🧹 Data Cleaning Mode")
         print("=" * 30)
         print("This will clean the raw data and save it to cleaned_dataset.csv")

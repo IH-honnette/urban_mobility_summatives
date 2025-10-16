@@ -247,19 +247,52 @@ class UrbanMobilityDashboard {
     
     const startDate = document.getElementById('start-date').value;
     const endDate = document.getElementById('end-date').value;
-    const fareAmount = document.getElementById('fare-amount').value;
-    const distance = document.getElementById('distance').value;
-    const passengers = document.getElementById('passengers').value;
     const pickupZone = document.getElementById('pickup-zone').value;
     const sortBy = document.getElementById('sort-by').value;
     const sortDir = document.getElementById('sort-dir').value;
     
+    // Fare filtering - prioritize exact over range
+    const exactFare = document.getElementById('fare-amount').value;
+    const minFare = document.getElementById('min-fare').value;
+    const maxFare = document.getElementById('max-fare').value;
+    
+    // Distance filtering - prioritize exact over range
+    const exactDistance = document.getElementById('distance').value;
+    const minDistance = document.getElementById('min-distance').value;
+    const maxDistance = document.getElementById('max-distance').value;
+    
+    // Passenger filtering - prioritize exact over range
+    const exactPassengers = document.getElementById('passengers').value;
+    const minPassengers = document.getElementById('min-passengers').value;
+    const maxPassengers = document.getElementById('max-passengers').value;
+    
     if (startDate) params.append('start', startDate);
     if (endDate) params.append('end', endDate);
-    if (fareAmount) params.append('min_fare', fareAmount);
-    if (distance) params.append('min_distance_km', distance);
-    if (passengers) params.append('passenger_min', passengers);
     if (pickupZone) params.append('pickup_zone', pickupZone);
+    
+    // Fare parameters
+    if (exactFare) {
+      params.append('fare_amount', exactFare);
+    } else {
+      if (minFare) params.append('min_fare', minFare);
+      if (maxFare) params.append('max_fare', maxFare);
+    }
+    
+    // Distance parameters
+    if (exactDistance) {
+      params.append('distance', exactDistance);
+    } else {
+      if (minDistance) params.append('min_distance_km', minDistance);
+      if (maxDistance) params.append('max_distance_km', maxDistance);
+    }
+    
+    // Passenger parameters
+    if (exactPassengers) {
+      params.append('passengers', exactPassengers);
+    } else {
+      if (minPassengers) params.append('passenger_min', minPassengers);
+      if (maxPassengers) params.append('passenger_max', maxPassengers);
+    }
     
     params.append('page', this.currentPage);
     params.append('page_size', this.pageSize);
@@ -904,9 +937,22 @@ class UrbanMobilityDashboard {
   resetFilters() {
     document.getElementById('start-date').value = '';
     document.getElementById('end-date').value = '';
+    
+    // Clear fare inputs
     document.getElementById('fare-amount').value = '';
+    document.getElementById('min-fare').value = '';
+    document.getElementById('max-fare').value = '';
+    
+    // Clear distance inputs
     document.getElementById('distance').value = '';
+    document.getElementById('min-distance').value = '';
+    document.getElementById('max-distance').value = '';
+    
+    // Clear passenger inputs
     document.getElementById('passengers').value = '';
+    document.getElementById('min-passengers').value = '';
+    document.getElementById('max-passengers').value = '';
+    
     document.getElementById('pickup-zone').value = '';
     document.getElementById('sort-by').value = 'pickup_datetime';
     document.getElementById('sort-dir').value = 'desc';
