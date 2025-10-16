@@ -2,7 +2,6 @@
 
 A full-stack web application for exploring NYC taxi trip data with interactive visualizations and real-time analytics.
 
-**Note: This system processes a limited dataset of 1000 records for optimal performance and demonstration purposes.**
 
 ## Project Structure
 
@@ -25,10 +24,15 @@ urban-mobility-data-explorer/
 └── README.md                  # This file
 ```
 
+## Report & Video
+
+- **Report**: [REPORT](./REPORT.md) - Comprehensive report documentation including system architecture, algorithmic implementations, and insights
+- **Video**: [VIDEO](./VIDEO.mp4) - Video demonstration of the application
+
 ## Features
 
 ### Backend (Flask + PostgreSQL)
-- **Data Processing**: Cleans and processes 1000 NYC taxi trip records (limited for performance)
+- **Data Processing**: Cleans and processes NYC taxi trip records
 - **Normalized Database**: Well-structured relational database with vendors, zones, and trips tables
 - **Derived Features**: Calculates trip speed, fare per km, and zone analysis
 - **Database Design**: Normalized schema with foreign key relationships and proper indexing
@@ -52,6 +56,7 @@ cd backend
 pip install -r requirements.txt || pip3 install -r requirements.txt
 
 
+# Make sure to add the the train.csv file to the backend directory.
 # Create .env file (copy from env_template.txt)
 # Update DATABASE_URL with your PostgreSQL connection
 
@@ -128,16 +133,19 @@ CREATE TABLE trips (
 
 | Endpoint | Method | Description | Parameters |
 |----------|--------|-------------|------------|
-| `/api/stats` | GET | Comprehensive urban mobility statistics | None |
-| `/api/trips` | GET | Advanced trip filtering and sorting | `start`, `end`, `min_fare`, `min_distance_km`, `max_distance_km`, `passenger_min`, `passenger_max`, `pickup_zone`, `page`, `page_size`, `sort_by`, `sort_dir` |
-| `/api/mobility-insights` | GET | Comprehensive mobility patterns and efficiency metrics | None |
-| `/api/fare-analysis` | GET | Detailed fare economics and pricing analysis | `start`, `end`, `limit` |
-| `/api/vendor-performance` | GET | Vendor comparison and performance analysis | None |
-| `/api/busiest-zones` | GET | Top pickup zones with coordinates | None |
-| `/api/analytics` | GET | Comprehensive analytics dashboard data | None |
-| `/api/hourly-distribution` | GET | Trip distribution by hour | `start`, `end` |
+| `/api/stats` | GET | Comprehensive urban mobility statistics and overview metrics 
+| `/api/trips` | GET | Advanced trip filtering, sorting, and pagination | `start`, `end`, `fare_amount`, `distance`, `passengers`, `pickup_zone`, `min_fare`, `max_fare`, `min_distance_km`, `max_distance_km`, `passenger_min`, `passenger_max`, `page`, `page_size`, `sort_by`, `sort_dir` |
+| `/api/zones` | GET | All zones 
+| `/api/busiest-zones` | GET | Top 20 busiest pickup zones with coordinates 
+| `/api/all-zones-with-counts` | GET | All zones with trip counts for map visualization 
+| `/api/hourly-distribution` | GET | Trip distribution by hour of day 
+| `/api/fare-analysis` | GET | Detailed fare economics and pricing analysis 
+| `/api/mobility-insights` | GET | Comprehensive mobility patterns and efficiency metrics 
+| `/api/vendor-performance` | GET | Vendor comparison and performance analysis 
 
 ## Data Processing Pipeline
+
+**Note**: The system processes the first 5000 records from the raw CSV data for optimal performance while maintaining meaningful insights.
 
 ### 1. Data Cleaning
 - Remove duplicates based on trip ID
@@ -176,7 +184,7 @@ CREATE TABLE trips (
 ## Development Notes
 
 ### Data Processing
-- Processes first 1000 records for optimal performance and demonstration
+- Processes the data from the raw CSV file
 - Normalized database structure with foreign key relationships
 - Excluded records are logged for transparency
 
@@ -193,7 +201,7 @@ CREATE TABLE trips (
 ## Assignment Requirements Met
 
 ✅ **Data Processing and Cleaning (Backend)**
-- ✅ Loads raw NYC dataset (CSV) - Limited to 1000 records for performance
+- ✅ Loads raw NYC dataset (CSV)
 - ✅ Handles missing values, duplicates, invalid records, and outliers
 - ✅ Normalizes and formats timestamps, coordinates, and numeric fields
 - ✅ **Three Derived Features**:

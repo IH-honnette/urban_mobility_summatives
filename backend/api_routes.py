@@ -6,6 +6,24 @@ from datetime import datetime, timedelta
 api_bp = Blueprint('api', __name__)
 logger = logging.getLogger(__name__)
 
+def safe_float(value, default=0.0):
+    """Safely convert value to float, handling None values"""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+def safe_int(value, default=0):
+    """Safely convert value to int, handling None values"""
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 @api_bp.route('/stats', methods=['GET'])
 def get_stats():
     """Get comprehensive urban mobility statistics and insights"""
@@ -62,20 +80,20 @@ def get_stats():
         peak_hours = []
         for row in cursor.fetchall():
             peak_hours.append({
-                'hour': int(row[0]),
-                'trip_count': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_fare': round(float(row[3]), 2)
+                'hour': safe_int(row[0]),
+                'trip_count': safe_int(row[1]),
+                'avg_speed_kmh': round(safe_float(row[2]), 2),
+                'avg_fare': round(safe_float(row[3]), 2)
             })
         
         return jsonify({
             'overview': {
-                'total_trips': int(stats[0]),
-                'avg_speed_kmh': round(float(stats[1]), 2),
-                'avg_fare_per_km': round(float(stats[2]), 2),
-                'avg_duration_minutes': round(float(stats[3]) / 60, 2),
-                'avg_distance_km': round(float(stats[4]), 2),
-                'avg_fare': round(float(stats[5]), 2),
+                'total_trips': safe_int(stats[0]),
+                'avg_speed_kmh': round(safe_float(stats[1]), 2),
+                'avg_fare_per_km': round(safe_float(stats[2]), 2),
+                'avg_duration_minutes': round(safe_float(stats[3]) / 60, 2),
+                'avg_distance_km': round(safe_float(stats[4]), 2),
+                'avg_fare': round(safe_float(stats[5]), 2),
                 'data_period': {
                     'earliest_trip': stats[6].isoformat() if stats[6] else None,
                     'latest_trip': stats[7].isoformat() if stats[7] else None
@@ -94,7 +112,7 @@ def get_stats():
 
 @api_bp.route('/trips', methods=['GET'])
 def get_trips():
-    """Get trips with filters, pagination and sorting - using normalized tables"""
+    """Get trips with filters, pagination and sorting"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -102,26 +120,37 @@ def get_trips():
         # Get query parameters
         start_date = request.args.get('start', '')
         end_date = request.args.get('end', '')
+        
         min_fare_param = request.args.get('min_fare', '')
-        min_fare = float(min_fare_param) if min_fare_param else 0
+        max_fare_param = request.args.get('max_fare', '')
+        exact_fare_param = request.args.get('fare_amount', '')
+        
+        min_fare = float(min_fare_param) if min_fare_param else None
+        max_fare = float(max_fare_param) if max_fare_param else None
+        exact_fare = float(exact_fare_param) if exact_fare_param else None
 
-        # Additional filters
         min_dist_param = request.args.get('min_distance_km', '')
         max_dist_param = request.args.get('max_distance_km', '')
-        passenger_min_param = request.args.get('passenger_min', '')
-        passenger_max_param = request.args.get('passenger_max', '')
-        pickup_zone = request.args.get('pickup_zone', '')
+        exact_dist_param = request.args.get('distance', '')
         
         min_dist = float(min_dist_param) if min_dist_param else None
         max_dist = float(max_dist_param) if max_dist_param else None
+        exact_dist = float(exact_dist_param) if exact_dist_param else None
+    
+        passenger_min_param = request.args.get('passenger_min', '')
+        passenger_max_param = request.args.get('passenger_max', '')
+        exact_passenger_param = request.args.get('passengers', '')
+        
         passenger_min = int(passenger_min_param) if passenger_min_param else None
         passenger_max = int(passenger_max_param) if passenger_max_param else None
+        exact_passenger = int(exact_passenger_param) if exact_passenger_param else None
+        
+        pickup_zone = request.args.get('pickup_zone', '')
 
-        # Pagination
         page = int(request.args.get('page', '1'))
-        page_size = int(request.args.get('page_size', '50'))
+        page_size = int(request.args.get('page_size', '5'))
         page = 1 if page < 1 else page
-        page_size = 1 if page_size < 1 else min(page_size, 500)
+        page_size = 1 if page_size < 1 else min(page_size, 100)
         offset = (page - 1) * page_size
 
         # Sorting
@@ -135,37 +164,59 @@ def get_trips():
             sort_by = 'pickup_datetime'
         sort_dir = 'DESC' if sort_dir != 'asc' else 'ASC'
         
-        # Build dynamic WHERE clauses
         where_clauses = []
         params = []
-        
-        # Always apply fare filter (minimum 0 if not specified)
-        where_clauses.append("t.fare_amount >= %s")
-        params.append(min_fare)
-        
+      
         if start_date:
             where_clauses.append("t.pickup_datetime >= %s")
             params.append(start_date)
         if end_date:
             where_clauses.append("t.pickup_datetime <= %s")
             params.append(end_date)
-        if min_dist is not None:
-            where_clauses.append("t.trip_distance_km >= %s")
-            params.append(min_dist)
-        if max_dist is not None:
-            where_clauses.append("t.trip_distance_km <= %s")
-            params.append(max_dist)
-        if passenger_min is not None:
-            where_clauses.append("t.passenger_count >= %s")
-            params.append(passenger_min)
-        if passenger_max is not None:
-            where_clauses.append("t.passenger_count <= %s")
-            params.append(passenger_max)
+     
+        if exact_fare is not None:
+          
+            tolerance = 0.01
+            where_clauses.append("t.fare_amount >= %s AND t.fare_amount <= %s")
+            params.extend([exact_fare - tolerance, exact_fare + tolerance])
+        else:
+            if min_fare is not None:
+                where_clauses.append("t.fare_amount >= %s")
+                params.append(min_fare)
+            if max_fare is not None:
+                where_clauses.append("t.fare_amount <= %s")
+                params.append(max_fare)
+        
+        if exact_dist is not None:
+           
+            tolerance = 0.01
+            where_clauses.append("t.trip_distance_km >= %s AND t.trip_distance_km <= %s")
+            params.extend([exact_dist - tolerance, exact_dist + tolerance])
+        else:
+            if min_dist is not None:
+                where_clauses.append("t.trip_distance_km >= %s")
+                params.append(min_dist)
+            if max_dist is not None:
+                where_clauses.append("t.trip_distance_km <= %s")
+                params.append(max_dist)
+
+        if exact_passenger is not None:
+            where_clauses.append("t.passenger_count = %s")
+            params.append(exact_passenger)
+        else:
+            if passenger_min is not None:
+                where_clauses.append("t.passenger_count >= %s")
+                params.append(passenger_min)
+            if passenger_max is not None:
+                where_clauses.append("t.passenger_count <= %s")
+                params.append(passenger_max)
+        
+        # Zone filter
         if pickup_zone:
             where_clauses.append("pz.zone_name = %s")
             params.append(pickup_zone)
 
-        where_sql = " AND ".join(where_clauses)
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
         # Total count for pagination
         count_sql = f"""
@@ -433,10 +484,10 @@ def get_fare_analysis():
         for row in cursor.fetchall():
             fare_by_distance.append({
                 'distance_category': row[0],
-                'trip_count': int(row[1]),
-                'avg_fare': round(float(row[2]), 2),
-                'avg_fare_per_km': round(float(row[3]), 2),
-                'avg_speed_kmh': round(float(row[4]), 2)
+                'trip_count': safe_int(row[1]),
+                'avg_fare': round(safe_float(row[2]), 2),
+                'avg_fare_per_km': round(safe_float(row[3]), 2),
+                'avg_speed_kmh': round(safe_float(row[4]), 2)
             })
         
         # Get sample data for scatter plot
@@ -457,22 +508,22 @@ def get_fare_analysis():
         sample_data = []
         for row in cursor.fetchall():
             sample_data.append({
-                'fare_amount': float(row[0]),
-                'trip_distance_km': float(row[1]),
-                'trip_duration': int(row[2]),
-                'trip_speed_kmh': float(row[3]),
-                'fare_per_km': float(row[4])
+                'fare_amount': safe_float(row[0]),
+                'trip_distance_km': safe_float(row[1]),
+                'trip_duration': safe_int(row[2]),
+                'trip_speed_kmh': safe_float(row[3]),
+                'fare_per_km': safe_float(row[4])
             })
         
         return jsonify({
             'fare_statistics': {
-                'avg_fare_per_km': round(float(fare_stats[0]), 2),
-                'min_fare_per_km': round(float(fare_stats[1]), 2),
-                'max_fare_per_km': round(float(fare_stats[2]), 2),
-                'fare_per_km_stddev': round(float(fare_stats[3]), 2),
-                'avg_fare_amount': round(float(fare_stats[4]), 2),
-                'avg_distance_km': round(float(fare_stats[5]), 2),
-                'avg_duration_minutes': round(float(fare_stats[6]) / 60, 2)
+                'avg_fare_per_km': round(safe_float(fare_stats[0]), 2),
+                'min_fare_per_km': round(safe_float(fare_stats[1]), 2),
+                'max_fare_per_km': round(safe_float(fare_stats[2]), 2),
+                'fare_per_km_stddev': round(safe_float(fare_stats[3]), 2),
+                'avg_fare_amount': round(safe_float(fare_stats[4]), 2),
+                'avg_distance_km': round(safe_float(fare_stats[5]), 2),
+                'avg_duration_minutes': round(safe_float(fare_stats[6]) / 60, 2)
             },
             'fare_by_distance': fare_by_distance,
             'sample_data': sample_data
@@ -508,11 +559,11 @@ def get_mobility_insights():
         hourly_patterns = []
         for row in cursor.fetchall():
             hourly_patterns.append({
-                'hour': int(row[0]),
-                'trip_count': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_distance_km': round(float(row[3]), 2),
-                'avg_fare_per_km': round(float(row[4]), 2)
+                'hour': safe_int(row[0]),
+                'trip_count': safe_int(row[1]),
+                'avg_speed_kmh': round(safe_float(row[2]), 2),
+                'avg_distance_km': round(safe_float(row[3]), 2),
+                'avg_fare_per_km': round(safe_float(row[4]), 2)
             })
         
         # Get efficiency metrics
@@ -548,22 +599,22 @@ def get_mobility_insights():
         for row in cursor.fetchall():
             efficient_zones.append({
                 'zone_name': row[0],
-                'trip_count': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_fare_per_km': round(float(row[3]), 2),
-                'avg_distance_km': round(float(row[4]), 2)
+                'trip_count': safe_int(row[1]),
+                'avg_speed_kmh': round(safe_float(row[2]), 2),
+                'avg_fare_per_km': round(safe_float(row[3]), 2),
+                'avg_distance_km': round(safe_float(row[4]), 2)
             })
         
         return jsonify({
             'hourly_patterns': hourly_patterns,
             'efficiency_metrics': {
-                'overall_avg_speed_kmh': round(float(efficiency_stats[0]), 2),
-                'overall_avg_fare_per_km': round(float(efficiency_stats[1]), 2),
-                'fast_trips_count': int(efficiency_stats[2]),
-                'slow_trips_count': int(efficiency_stats[3]),
-                'total_trips': int(efficiency_stats[4]),
-                'fast_trips_percentage': round((efficiency_stats[2] / efficiency_stats[4]) * 100, 2),
-                'slow_trips_percentage': round((efficiency_stats[3] / efficiency_stats[4]) * 100, 2)
+                'overall_avg_speed_kmh': round(safe_float(efficiency_stats[0]), 2),
+                'overall_avg_fare_per_km': round(safe_float(efficiency_stats[1]), 2),
+                'fast_trips_count': safe_int(efficiency_stats[2]),
+                'slow_trips_count': safe_int(efficiency_stats[3]),
+                'total_trips': safe_int(efficiency_stats[4]),
+                'fast_trips_percentage': round((safe_int(efficiency_stats[2]) / max(safe_int(efficiency_stats[4]), 1)) * 100, 2),
+                'slow_trips_percentage': round((safe_int(efficiency_stats[3]) / max(safe_int(efficiency_stats[4]), 1)) * 100, 2)
             },
             'most_efficient_zones': efficient_zones
         })
@@ -603,12 +654,12 @@ def get_vendor_performance():
         for row in cursor.fetchall():
             vendor_performance.append({
                 'vendor_name': row[0],
-                'total_trips': int(row[1]),
-                'avg_speed_kmh': round(float(row[2]), 2),
-                'avg_fare_per_km': round(float(row[3]), 2),
-                'avg_distance_km': round(float(row[4]), 2),
-                'avg_duration_minutes': round(float(row[5]) / 60, 2),
-                'avg_fare_amount': round(float(row[6]), 2),
+                'total_trips': safe_int(row[1]),
+                'avg_speed_kmh': round(safe_float(row[2]), 2),
+                'avg_fare_per_km': round(safe_float(row[3]), 2),
+                'avg_distance_km': round(safe_float(row[4]), 2),
+                'avg_duration_minutes': round(safe_float(row[5]) / 60, 2),
+                'avg_fare_amount': round(safe_float(row[6]), 2),
                 'operational_period': {
                     'first_trip': row[7].isoformat() if row[7] else None,
                     'last_trip': row[8].isoformat() if row[8] else None

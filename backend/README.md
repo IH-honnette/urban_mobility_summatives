@@ -2,11 +2,10 @@
 
 This is the Flask backend for the Urban Mobility Data Explorer application. It processes NYC taxi trip data and provides REST API endpoints for data visualization.
 
-**Note: This system processes a limited dataset of 1000 records for optimal performance and demonstration purposes.**
 
 ## Features
 
-- **Data Processing**: Cleans and processes raw NYC taxi trip data (limited to 1000 records)
+- **Data Processing**: Cleans and processes raw NYC taxi trip data
 - **Normalized Database**: Well-structured relational database with separate tables for vendors, trips, and zones
 - **Derived Features**: Calculates trip speed, fare per km, and zone-based analysis
 - **PostgreSQL Integration**: Stores processed data in normalized tables with foreign key relationships
@@ -43,7 +42,7 @@ python setup.py
 
 This will:
 - Create normalized database tables (vendors, zones, trips)
-- Process the first 1000 records from `train.csv` file
+- Process the data from `train.csv` file
 - Clean and validate data
 - Calculate derived features
 - Load data into normalized PostgreSQL tables with foreign key relationships
@@ -65,7 +64,7 @@ The API will be available at `http://localhost:5003`
 
 ## Data Processing
 
-The system processes the first 1000 records from the raw CSV data and:
+The system processes the first 5000 records from the raw CSV data and:
 
 1. **Cleans Data**:
    - Removes duplicates
