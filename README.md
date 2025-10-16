@@ -81,7 +81,7 @@ cd frontend
 
 ## Database Schema
 
-The database uses a normalized structure with three main tables:
+The database uses a normalized structure with three main tables;
 
 ### Vendors Table
 ```sql
@@ -150,7 +150,7 @@ CREATE TABLE trips (
 ### 1. Data Cleaning
 - Remove duplicates based on trip ID
 - Handle missing values in critical fields
-- Validate coordinates within NYC bounds
+- Validates coordinates within NYC bounds
 - Filter invalid trip durations (1 min - 6 hours)
 - Remove outlier passenger counts (1-6 passengers)
 
@@ -162,9 +162,9 @@ CREATE TABLE trips (
 - **Zones**: Grid-based pickup/dropoff zones for analysis
 
 ### 3. Data Validation
-- Comprehensive logging of excluded records
-- Transparent reporting of data quality issues
-- Performance optimization with database indexes
+- Comprehensive logging of excluded records.
+- Transparent reporting of data quality issues.
+- Performance optimization with database indexes.
 
 ## Technology Stack
 
@@ -257,6 +257,6 @@ CREATE TABLE trips (
 
 ### **GROUP MEMBERS**
 
--Umwari Vanessa
--Ihozo Marie Honnette
--Kwizera Karangwa Laura
+-UMWARI Vanessa
+-IHOZO Marie Honnette
+-KWIZERA KARANGWA Laura
