@@ -269,3 +269,9 @@ CREATE TABLE trips (
 - Geographic mapping integration
 - Advanced filtering options
 - Data export functionality
+
+### **GROUP MEMBERS**
+
+-Umwari Vanessa
+-Ihozo Honnette
+-Kwizera Karangwa Laura
