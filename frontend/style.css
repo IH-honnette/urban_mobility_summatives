@@ -9,10 +9,10 @@
   /* Color Palette */
   --primary: #00f0ff;
   --primary-dark: #00d4e6;
-  --secondary: #ffd700;
-  --accent: #ff6b6b;
+  --secondary: #f9d81b;
+  --accent: #fd6161;
   --success: #00ff88;
-  --warning: #ffaa00;
+  --warning: #fcab0a;
   --error: #ff4444;
   --info: #4488ff;
   
@@ -31,7 +31,7 @@
   /* Border Colors */
   --border-primary: #333333;
   --border-secondary: #444444;
-  --border-accent: rgba(0, 240, 255, 0.3);
+  --border-accent: rgba(6, 235, 252, 0.3);
   
   /* Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
