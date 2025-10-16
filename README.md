@@ -1,6 +1,6 @@
 # Urban Mobility Data Explorer
 
-A full-stack web application for exploring NYC taxi trip data with interactive visualizations and real-time analytics.
+This is full-stack web application for exploring NYC taxi trip data with interactive visualizations and real-time analytics.
 
 
 ## Project Structure
@@ -81,7 +81,7 @@ cd frontend
 
 ## Database Schema
 
-The database uses a normalized structure with three main tables;
+The database uses a normalized structure with three main tables:
 
 ### Vendors Table
 ```sql
@@ -162,9 +162,9 @@ CREATE TABLE trips (
 - **Zones**: Grid-based pickup/dropoff zones for analysis
 
 ### 3. Data Validation
-- Comprehensive logging of excluded records.
-- Transparent reporting of data quality issues.
-- Performance optimization with database indexes.
+- Comprehensive logging of excluded records
+- Transparent reporting of data quality issues
+- Performance optimization with database indexes
 
 ## Technology Stack
 
@@ -257,6 +257,6 @@ CREATE TABLE trips (
 
 ### **GROUP MEMBERS**
 
--UMWARI Vanessa
--IHOZO Marie Honnette
--KWIZERA KARANGWA Laura
+-Umwari Vanessa
+-Ihozo Marie Honnette
+-Kwizera Karangwa Laura
