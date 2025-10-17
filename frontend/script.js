@@ -752,20 +752,20 @@ class UrbanMobilityDashboard {
       
       // Different popup content based on zone type
       const popupContent = isBusiest ? `
-        <div style="color: white; font-family: Inter, sans-serif;">
+        <div style="color: white; font-family: Inter, sans-serif; background: #1a1a1a; padding: 12px; border-radius: 8px; border: 1px solid #333;">
           <h4 style="margin: 0 0 8px 0; color: #00f0ff;">🔥 ${zone.zone}</h4>
-          <p style="margin: 4px 0;"><strong>Trip Count:</strong> ${zone.count.toLocaleString()}</p>
-          <p style="margin: 4px 0;"><strong>Coordinates:</strong><br>
+          <p style="margin: 4px 0; color: #b0b0b0;"><strong style="color: white;">Trip Count:</strong> ${zone.count.toLocaleString()}</p>
+          <p style="margin: 4px 0; color: #b0b0b0;"><strong style="color: white;">Coordinates:</strong><br>
           Lat: ${zone.lat.toFixed(4)}<br>
           Lon: ${zone.lon.toFixed(4)}</p>
           <p style="margin: 4px 0; font-size: 0.9em; color: #ffd700;">
            Rank: #${rank} busiest zone</p>
         </div>
       ` : `
-        <div style="color: white; font-family: Inter, sans-serif;">
+        <div style="color: white; font-family: Inter, sans-serif; background: #1a1a1a; padding: 12px; border-radius: 8px; border: 1px solid #333;">
           <h4 style="margin: 0 0 8px 0; color: #b0b0b0;">📍 ${zone.zone}</h4>
-          <p style="margin: 4px 0;"><strong>Trip Count:</strong> ${zone.count.toLocaleString()}</p>
-          <p style="margin: 4px 0;"><strong>Coordinates:</strong><br>
+          <p style="margin: 4px 0; color: #b0b0b0;"><strong style="color: white;">Trip Count:</strong> ${zone.count.toLocaleString()}</p>
+          <p style="margin: 4px 0; color: #b0b0b0;"><strong style="color: white;">Coordinates:</strong><br>
           Lat: ${zone.lat.toFixed(4)}<br>
           Lon: ${zone.lon.toFixed(4)}</p>
           <p style="margin: 4px 0; font-size: 0.9em; color: #808080;">

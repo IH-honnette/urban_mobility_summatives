@@ -26,8 +26,8 @@ urban-mobility-data-explorer/
 
 ## Report & Video
 
-- **Report**: [REPORT](./REPORT.md) - Comprehensive report documentation including system architecture, algorithmic implementations, and insights
-- **Video**: [VIDEO](./VIDEO.mp4) - Video demonstration of the application
+- **Report**: [REPORT](https://docs.google.com/document/d/1uJmi7nF_PL4kR4iqPt29EzgpdtVLDNhc-ki_y8etvIo/edit?usp=sharing) - Comprehensive report documentation including system architecture, algorithmic implementations, and insights
+- **Video**: [VIDEO](./video.mov) - Video demonstration of the application
 
 ## Features
 
@@ -49,12 +49,16 @@ urban-mobility-data-explorer/
 
 ### 1. Backend Setup
 
+```
+git clone https://github.com/IH-honnette/urban_mobility_summatives.git
+cd urban-mobility-data-explorer
+```
+
 ```bash
 cd backend
 
 # Install dependencies
 pip install -r requirements.txt || pip3 install -r requirements.txt
-
 
 # Make sure to add the the train.csv file to the backend directory.
 # Create .env file (copy from env_template.txt)
@@ -143,16 +147,15 @@ CREATE TABLE trips (
 | `/api/mobility-insights` | GET | Comprehensive mobility patterns and efficiency metrics 
 | `/api/vendor-performance` | GET | Vendor comparison and performance analysis 
 
-## Data Processing Pipeline
+## Data Processing 
 
 **Note**: The system processes the first 5000 records from the raw CSV data for optimal performance while maintaining meaningful insights.
 
 ### 1. Data Cleaning
 - Remove duplicates based on trip ID
 - Handle missing values in critical fields
-- Validates coordinates within NYC bounds
-- Filter invalid trip durations (1 min - 6 hours)
-- Remove outlier passenger counts (1-6 passengers)
+- Validate coordinates within NYC bounds
+
 
 ### 2. Derived Features
 - **Trip Distance**: Haversine formula for accurate distance calculation
@@ -197,55 +200,6 @@ CREATE TABLE trips (
 - Comprehensive logging throughout the application
 - Graceful error handling in API endpoints
 - User-friendly error messages in frontend
-
-## Assignment Requirements Met
-
-✅ **Data Processing and Cleaning (Backend)**
-- ✅ Loads raw NYC dataset (CSV)
-- ✅ Handles missing values, duplicates, invalid records, and outliers
-- ✅ Normalizes and formats timestamps, coordinates, and numeric fields
-- ✅ **Three Derived Features**:
-  1. **Trip Speed (km/h)**: Distance/time calculation with validation
-  2. **Fare per KM**: Cost efficiency metric for pricing analysis
-  3. **Zone-based Analysis**: Grid-based pickup/dropoff zones for geographic insights
-- ✅ Logs excluded records for transparency (excluded_records.txt)
-- ✅ Uses Flask for backend service
-
-✅ **Database Design and Implementation**
-- ✅ **Normalized Relational Schema**: Three tables with proper foreign key relationships
-  - `vendors` table: Vendor information and management
-  - `zones` table: Geographic zones with coordinates and statistics
-  - `trips` table: Trip data with foreign key references
-- ✅ Implemented in PostgreSQL with appropriate indexing
-- ✅ Scripts to insert cleaned and enriched data (`setup.py`, `data_processor.py`)
-- ✅ Data integrity with foreign key constraints and referential integrity
-- ✅ Efficient queries with proper indexing on frequently accessed columns
-
-✅ **Backend Service Development**
-- ✅ Flask REST API with comprehensive endpoints
-- ✅ **Student-level code structure**: Clear functions, proper error handling, logging
-- ✅ Advanced filtering and sorting capabilities
-- ✅ Pagination for large datasets
-- ✅ Meaningful urban mobility insights and analytics
-
-✅ **Frontend Dashboard Development**
-- ✅ Web-based dashboard using HTML, CSS, and JavaScript
-- ✅ **Filtering and sorting options**: By time, distance, location, fare, passenger count
-- ✅ **Dynamic interaction**: Visual summaries, detail views, real-time filtering
-- ✅ Modern responsive design with interactive charts
-
-## Key Urban Mobility Insights Provided
-
-### 📊 **Performance Metrics**
-- Trip speed analysis by time of day and zone
-- Fare efficiency and pricing patterns
-- Vendor performance comparison
-- Traffic flow optimization insights
-
-### 🚗 **Operational Intelligence**
-- Passenger count analysis
-- Trip duration patterns
-- Speed distribution analysis
 
 ## Future Enhancements
 
