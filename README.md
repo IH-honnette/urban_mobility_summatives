@@ -27,7 +27,7 @@ urban-mobility-data-explorer/
 ## Report & Video
 
 - **Report**: [REPORT](https://docs.google.com/document/d/1uJmi7nF_PL4kR4iqPt29EzgpdtVLDNhc-ki_y8etvIo/edit?usp=sharing) - Comprehensive report documentation including system architecture, algorithmic implementations, and insights
-- **Video**: [VIDEO](./video.mov) - Video demonstration of the application
+- **Video**: [VIDEO](https://youtu.be/leDUibCdTo0) - Video demonstration of the application
 
 ## Features
 
